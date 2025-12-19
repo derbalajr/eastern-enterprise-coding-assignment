@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Country;
 use App\Entity\Currency;
+use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
@@ -17,9 +18,11 @@ class CountryService
 {
     private const REST_COUNTRIES_API_URL = 'https://restcountries.com/v3.1/all';
     private const REQUIRED_FIELDS = 'cca2,cca3,name,region,subregion,demonyms,population,independent,flags,currencies';
+    private const LOG_PREFIX = '[CountryService]';
 
     public function __construct(
-        private readonly HttpClientInterface $httpClient
+        private readonly HttpClientInterface $httpClient,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -33,14 +36,22 @@ class CountryService
     {
         try {
             $url = self::REST_COUNTRIES_API_URL . '?fields=' . self::REQUIRED_FIELDS;
+            $this->logger->info(self::LOG_PREFIX . " Fetching countries from REST Countries API: {$url}");
             $response = $this->httpClient->request('GET', $url);
             $data = $response->toArray();
+            $this->logger->info(self::LOG_PREFIX . ' Successfully received API response');
 
-            return array_map(
+            $countries = array_map(
                 fn(array $countryData): Country => $this->transformToCountry($countryData),
                 $data
             );
+
+            $this->logger->info(self::LOG_PREFIX . ' Transformed ' . count($countries) . ' countries from API data');
+            return $countries;
         } catch (HttpExceptionInterface|TransportExceptionInterface $e) {
+            $this->logger->error(self::LOG_PREFIX . ' Failed to fetch countries from REST Countries API: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
             throw new \RuntimeException(
                 'Failed to fetch countries from REST Countries API: ' . $e->getMessage(),
                 0,
