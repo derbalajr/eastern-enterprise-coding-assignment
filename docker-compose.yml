@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  nginx:
+    container_name: lvs_assessment_nginx
+    build:
+      context: docker/dev/nginx
+    depends_on:
+      - php
+    volumes:
+      - .:/app:rw,cached
+    ports:
+      - "8084:80"
+
+  php:
+    container_name: lvs_assessment_php
+    build:
+      context: docker/dev/php
+    depends_on:
+      - sql
+    volumes:
+      - .:/app:rw,cached
+      - ./vendor:/app/vendor:delegated
+      - assessment_cachevolume:/app/var/cache
+
+  sql:
+    container_name: lvs_assessment_sql
+    image: mariadb:10.2
+    volumes:
+      - assessment_database_data:/var/lib/mysql:rw
+    environment:
+      MYSQL_USER: assessment
+      MYSQL_PASSWORD: assessment
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+      MYSQL_DATABASE: assessment
+    ports:
+      - 8085:3306
+
+volumes:
+  assessment_cachevolume: {}
+  assessment_database_data: { }

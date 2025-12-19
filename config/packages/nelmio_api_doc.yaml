@@ -1,0 +1,9 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: Symfony Assessment
+            description: These are the endpoints for my Symfony Assessment
+            version: 1.0.0
+    areas:
+        path_patterns:
+            - ^/api(?!/doc$)
