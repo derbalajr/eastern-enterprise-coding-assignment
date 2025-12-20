@@ -1,0 +1,381 @@
+{
+	"info": {
+		"name": "Country Management API",
+		"description": "Symfony assessment - Country CRUD API with REST Countries synchronization",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "username",
+				"value": "admin",
+				"type": "string"
+			},
+			{
+				"key": "password",
+				"value": "admin",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "Countries",
+			"item": [
+				{
+					"name": "Get All Countries",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/countries/list?page=1&limit=50",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"countries",
+								"list"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number (default: 1)"
+								},
+								{
+									"key": "limit",
+									"value": "50",
+									"description": "Items per page (default: 50, max: 100)"
+								}
+							]
+						},
+						"description": "Get paginated list of all countries. Public endpoint, no authentication required."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Country by UUID",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/countries/{{country_uuid}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"countries",
+								"{{country_uuid}}"
+							]
+						},
+						"description": "Get a single country by UUID. Public endpoint, no authentication required."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Country",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"uuid\": \"EG\",\n  \"name\": \"Egypt\",\n  \"region\": \"Africa\",\n  \"subRegion\": \"Northern Africa\",\n  \"demonym\": \"Egyptian\",\n  \"population\": 102334403,\n  \"independent\": true,\n  \"flag\": \"https://flagcdn.com/eg.svg\",\n  \"currency\": {\n    \"name\": \"Egyptian pound\",\n    \"symbol\": \"£\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/countries",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"countries"
+							]
+						},
+						"description": "Create a new country. Requires Basic Auth (admin/admin)."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Country",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Egypt Updated\",\n  \"population\": 105000000\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/countries/{{country_uuid}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"countries",
+								"{{country_uuid}}"
+							]
+						},
+						"description": "Update a country (partial update). Requires Basic Auth (admin/admin)."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Country",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/countries/{{country_uuid}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"countries",
+								"{{country_uuid}}"
+							]
+						},
+						"description": "Delete a country (soft delete). Requires Basic Auth (admin/admin)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Examples",
+			"item": [
+				{
+					"name": "Create - Full Example",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"uuid\": \"US\",\n  \"name\": \"United States\",\n  \"region\": \"Americas\",\n  \"subRegion\": \"Northern America\",\n  \"demonym\": \"American\",\n  \"population\": 329484123,\n  \"independent\": true,\n  \"flag\": \"https://flagcdn.com/us.svg\",\n  \"currency\": {\n    \"name\": \"United States dollar\",\n    \"symbol\": \"$\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/countries",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"countries"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create - Minimal Example",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"uuid\": \"FR\",\n  \"name\": \"France\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/countries",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"countries"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update - Partial Example",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Name\",\n  \"region\": \"Updated Region\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/countries/{{country_uuid}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"countries",
+								"{{country_uuid}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Validation Errors",
+			"item": [
+				{
+					"name": "Missing Required Fields",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Country\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/countries",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"countries"
+							]
+						},
+						"description": "Example: Missing required UUID field"
+					}
+				},
+				{
+					"name": "Invalid Population",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"uuid\": \"XX\",\n  \"name\": \"Test\",\n  \"population\": -1000\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/countries",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"countries"
+							]
+						},
+						"description": "Example: Negative population value"
+					}
+				},
+				{
+					"name": "Invalid Flag URL",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"uuid\": \"XX\",\n  \"name\": \"Test\",\n  \"flag\": \"not-a-valid-url\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/countries",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"countries"
+							]
+						},
+						"description": "Example: Invalid URL format"
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8084",
+			"type": "string"
+		},
+		{
+			"key": "country_uuid",
+			"value": "US",
+			"type": "string"
+		}
+	]
+}
+
