@@ -56,11 +56,13 @@ class CountrySyncCommand extends Command
             $this->entityManager->flush();
             $this->logger->info(self::LOG_PREFIX . ' Database flush completed');
 
-            $this->logger->info(self::LOG_PREFIX . " Synchronization completed: created={$stats['created']}, updated={$stats['updated']}, removed={$removed}");
+            $restored = $stats['restored'] ?? 0;
+            $this->logger->info(self::LOG_PREFIX . " Synchronization completed: created={$stats['created']}, updated={$stats['updated']}, restored={$restored}, removed={$removed}");
 
             $io->success([
                 sprintf('Created: %d countries', $stats['created']),
                 sprintf('Updated: %d countries', $stats['updated']),
+                sprintf('Restored: %d countries', $restored),
                 sprintf('Removed: %d countries', $removed),
                 'Synchronization completed successfully!'
             ]);
@@ -79,24 +81,30 @@ class CountrySyncCommand extends Command
     {
         $created = 0;
         $updated = 0;
+        $restored = 0;
 
         foreach ($countries as $country) {
-            $existing = $this->countryRepository->findByUuid($country->getUuid());
+            $existing = $this->countryRepository->findByUuidIncludingDeleted($country->getUuid());
 
             if ($existing === null) {
                 $this->entityManager->persist($country);
                 $this->logger->debug(self::LOG_PREFIX . " Creating new country: {$country->getUuid()} - {$country->getName()}");
                 $created++;
             } else {
+                if ($existing->isDeleted()) {
+                    $existing->restore();
+                    $this->logger->debug(self::LOG_PREFIX . " Restoring soft-deleted country: {$country->getUuid()} - {$country->getName()}");
+                    $restored++;
+                }
                 $this->updateCountryFromApi($existing, $country);
                 $this->logger->debug(self::LOG_PREFIX . " Updating country: {$country->getUuid()} - {$country->getName()}");
                 $updated++;
             }
         }
 
-        $this->logger->info(self::LOG_PREFIX . " Sync completed: created={$created}, updated={$updated}");
+        $this->logger->info(self::LOG_PREFIX . " Sync completed: created={$created}, updated={$updated}, restored={$restored}");
 
-        return ['created' => $created, 'updated' => $updated];
+        return ['created' => $created, 'updated' => $updated, 'restored' => $restored];
     }
 
     private function removeObsoleteCountries(array $countries): int

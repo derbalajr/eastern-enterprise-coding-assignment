@@ -6,12 +6,14 @@ namespace App\Entity;
 
 use App\Repository\CountryRepository;
 use Doctrine\ORM\Mapping as ORM;
+use OpenApi\Attributes as OA;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CountryRepository::class)]
 #[ORM\Table(name: 'countries')]
 #[ORM\HasLifecycleCallbacks]
+#[OA\Schema]
 class Country
 {
     #[ORM\Id]
@@ -64,6 +66,9 @@ class Country
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true, name: 'updated_at')]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true, name: 'deleted_at')]
+    private ?\DateTimeImmutable $deletedAt = null;
 
     public function __construct()
     {
@@ -185,7 +190,33 @@ class Country
         $this->updatedAt = $updatedAt;
     }
 
+    public function getDeletedAt(): ?\DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?\DateTimeImmutable $deletedAt): void
+    {
+        $this->deletedAt = $deletedAt;
+    }
+
+    public function isDeleted(): bool
+    {
+        return $this->deletedAt !== null;
+    }
+
+    public function softDelete(): void
+    {
+        $this->deletedAt = new \DateTimeImmutable();
+    }
+
+    public function restore(): void
+    {
+        $this->deletedAt = null;
+    }
+
     #[ORM\PreUpdate]
+    #[OA\Property(property: 'updatedAtValue', type: '')]
     public function setUpdatedAtValue(): void
     {
         $this->updatedAt = new \DateTimeImmutable();

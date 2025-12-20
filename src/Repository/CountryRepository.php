@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\Country;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -19,35 +20,72 @@ class CountryRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find a country by UUID.
+     * Add condition to exclude soft-deleted countries.
      */
-    public function findByUuid(string $uuid): ?Country
+    private function addNotDeletedCondition(QueryBuilder $qb): QueryBuilder
     {
-        return $this->findOneBy(['uuid' => $uuid]);
+        return $qb->andWhere('c.deletedAt IS NULL');
     }
 
     /**
-     * Find all countries ordered by name.
+     * Find a country by UUID (excluding soft-deleted).
+     */
+    public function findByUuid(string $uuid): ?Country
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->where('c.uuid = :uuid')
+            ->setParameter('uuid', $uuid);
+        
+        return $this->addNotDeletedCondition($qb)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * Find all countries ordered by name (excluding soft-deleted).
      *
+     * @param int $page Page number (1-based)
+     * @param int $limit Number of items per page
      * @return Country[]
      */
-    public function findAllOrderedByName(): array
+    public function findAllOrderedByName(int $page = 1, int $limit = 50): array
     {
-        return $this->createQueryBuilder('c')
+        $offset = max(0, ($page - 1) * $limit);
+        
+        $qb = $this->createQueryBuilder('c')
             ->orderBy('c.name', 'ASC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit);
+        
+        return $this->addNotDeletedCondition($qb)
             ->getQuery()
             ->getResult();
     }
 
     /**
-     * Get all UUIDs currently in the database.
+     * Count all countries (excluding soft-deleted).
+     */
+    public function countAll(): int
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)');
+        
+        return (int) $this->addNotDeletedCondition($qb)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Get all UUIDs currently in the database (excluding soft-deleted).
      *
      * @return string[]
      */
     public function findAllUuids(): array
     {
-        $result = $this->createQueryBuilder('c')
-            ->select('c.uuid')
+        $qb = $this->createQueryBuilder('c')
+            ->select('c.uuid');
+        
+        $result = $this->addNotDeletedCondition($qb)
             ->getQuery()
             ->getResult();
 
@@ -55,10 +93,18 @@ class CountryRepository extends ServiceEntityRepository
     }
 
     /**
-     * Remove countries that are not in the provided UUID list.
+     * Find a country by UUID including soft-deleted ones.
+     */
+    public function findByUuidIncludingDeleted(string $uuid): ?Country
+    {
+        return $this->findOneBy(['uuid' => $uuid]);
+    }
+
+    /**
+     * Soft delete countries that are not in the provided UUID list.
      *
      * @param string[] $validUuids
-     * @return int Number of countries removed
+     * @return int Number of countries soft-deleted
      */
     public function removeCountriesNotInList(array $validUuids): int
     {
@@ -67,9 +113,12 @@ class CountryRepository extends ServiceEntityRepository
         }
 
         $qb = $this->createQueryBuilder('c');
-        $qb->delete()
+        $qb->update()
+            ->set('c.deletedAt', ':now')
             ->where($qb->expr()->notIn('c.uuid', ':uuids'))
-            ->setParameter('uuids', $validUuids);
+            ->andWhere('c.deletedAt IS NULL')
+            ->setParameter('uuids', $validUuids)
+            ->setParameter('now', new \DateTimeImmutable());
 
         return $qb->getQuery()->execute();
     }
