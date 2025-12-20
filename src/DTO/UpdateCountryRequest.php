@@ -32,7 +32,7 @@ class UpdateCountryRequest
     public ?bool $independent = null;
 
     #[Assert\Length(max: 500, maxMessage: 'Flag URL cannot be longer than 500 characters')]
-    #[Assert\Url(message: 'Flag must be a valid URL')]
+    #[Assert\Url(requireTld: false, message: 'Flag must be a valid URL')]
     public ?string $flag = null;
 
     #[Assert\Valid]
